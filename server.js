@@ -118,10 +118,18 @@ app.post('/api/generate', async (req, res) => {
       return res.status(403).json({ error: 'Insufficient credits', credits: 0 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const apiKeysString = process.env.GEMINI_API_KEY;
+    if (!apiKeysString) {
       return res.status(500).json({ error: 'Server configuration error: Missing Gemini API Key' });
     }
+
+    // Tách các API Key bằng dấu phẩy và chọn ngẫu nhiên 1 Key
+    const apiKeys = apiKeysString.split(',').map(k => k.trim()).filter(k => k);
+    if (apiKeys.length === 0) {
+      return res.status(500).json({ error: 'Server configuration error: Invalid API Key format' });
+    }
+    
+    const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
 
     const modelsResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
     const modelsData = await modelsResponse.json();
